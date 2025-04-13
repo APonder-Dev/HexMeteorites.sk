@@ -31,7 +31,7 @@ HexMeteorites is a feature-rich Skript plugin that drops meteors filled with loo
 📁 Installation
 
 1. Download and install the required plugins.
-2. Place `HexBounties.sk` in:
+2. Place `HexMeteorites.sk` in:
    `/plugins/Skript/scripts/`
 3. Reload Skript with:
    `/skript reload HexMeteorites`
