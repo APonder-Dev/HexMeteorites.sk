@@ -1,0 +1,128 @@
+
+# ┌──────────────────────────────────────────┐
+# │     HexMeteorites.sk — v1.0 by Aponder     │
+# └──────────────────────────────────────────┘
+
+options:
+    meteor-interval: 30 minutes
+    world-names: world, world_nether, world_the_end
+    radius: 2000
+    chest-lifetime: 5 minutes
+    display-prefix: <gradient:#f7941d:#e74c3c>[HexMeteorites]</gradient> &7> 
+
+variables:
+    {meteor::location} = location
+    {meteor::world} = "world"
+    {meteor::active} = false
+    {meteortier::weights::common} = 60
+    {meteortier::weights::rare} = 30
+    {meteortier::weights::legendary} = 10
+
+# Meteor event spawner
+every {@meteor-interval}:
+    if {meteor::active} is true:
+        stop
+
+    set {_worlds::*} to split "{@world-names}" at ","
+    set {_world} to trim(random element out of {_worlds::*})
+
+    set {_x} to random integer between -{@radius} and {@radius}
+    set {_z} to random integer between -{@radius} and {@radius}
+    set {_y} to highest solid block at {_x}, 255, {_z} in world {_world}
+    set {meteor::location} to location at {_x}, {_y}, {_z} in world {_world}
+    set {meteor::world} to {_world}
+    set {meteor::active} to true
+
+    broadcast "{@display-prefix}&6☄ A meteor is crashing down in &b%{meteor::world}%&6!"
+    wait 3 seconds
+    strike lightning at {meteor::location}
+    create explosion of power 2 at {meteor::location}
+    set block at {meteor::location} to chest
+
+    loop 5 times:
+        set {_tier} to random tier weighted by {meteortier::weights::*}
+        set {_loot::*} to {meteorloot::%{_tier}%::*}
+        if {_loot::*} is set:
+            set slot loop-number - 1 of block at {meteor::location} to random element out of {_loot::*}
+
+    broadcast "{@display-prefix}&eA meteor has landed! Use &a/meteortp &eto teleport to it!"
+
+# Random tier roll based on weights
+function random tier weighted by(weights: objects) :: text:
+    set {_total} to 0
+    loop {_weights::*}:
+        add loop-value to {_total}
+    set {_roll} to random integer between 1 and {_total}
+    set {_sum} to 0
+    loop {_weights::*}:
+        add loop-value to {_sum}
+        if {_roll} <= {_sum}:
+            return loop-index
+
+command /meteortp:
+    permission: meteor.tp
+    trigger:
+        if {meteor::active} is false:
+            send "{@display-prefix}&cNo active meteor at the moment."
+            stop
+        teleport player to {meteor::location}
+        send "{@display-prefix}&6☄ Teleported you to the meteor in &b%{meteor::world}%&6!"
+
+every {@chest-lifetime}:
+    if {meteor::active} is true:
+        set block at {meteor::location} to air
+        broadcast "{@display-prefix}&7The meteor crater in &b%{meteor::world}% &7has faded away..."
+        delete {meteor::*}
+
+# Tier Setup GUI
+command /meteortiersetup:
+    permission: meteor.admin
+    trigger:
+        open virtual chest inventory with size 3 named "&6Meteor Tier Setup" to player
+        set slot 0 of player's current inventory to barrier named "&cClear Common Tier"
+        set slot 9 of player's current inventory to barrier named "&cClear Rare Tier"
+        set slot 18 of player's current inventory to barrier named "&cClear Legendary Tier"
+
+        loop {meteorloot::common::*}:
+            set slot 1 + loop-index of player's current inventory to loop-value
+        loop {meteorloot::rare::*}:
+            set slot 10 + loop-index of player's current inventory to loop-value
+        loop {meteorloot::legendary::*}:
+            set slot 19 + loop-index of player's current inventory to loop-value
+
+on inventory close:
+    name of event-inventory is "&6Meteor Tier Setup"
+    clear {meteorloot::common::*}
+    clear {meteorloot::rare::*}
+    clear {meteorloot::legendary::*}
+
+    loop 1 to 8:
+        set {_item} to slot loop-number of event-inventory
+        if {_item} is set:
+            set {meteorloot::common::%loop-number%} to {_item}
+
+    loop 10 to 17:
+        set {_item} to slot loop-number of event-inventory
+        if {_item} is set:
+            set {meteorloot::rare::%loop-number%} to {_item}
+
+    loop 19 to 26:
+        set {_item} to slot loop-number of event-inventory
+        if {_item} is set:
+            set {meteorloot::legendary::%loop-number%} to {_item}
+
+    send "{@display-prefix}&aMeteor tier rewards updated."
+
+on inventory click:
+    name of event-inventory is "&6Meteor Tier Setup"
+    if clicked item is a barrier:
+        cancel event
+        if name of clicked item is "&cClear Common Tier":
+            clear {meteorloot::common::*}
+            send "{@display-prefix}&cCleared Common Tier."
+        if name of clicked item is "&cClear Rare Tier":
+            clear {meteorloot::rare::*}
+            send "{@display-prefix}&cCleared Rare Tier."
+        if name of clicked item is "&cClear Legendary Tier":
+            clear {meteorloot::legendary::*}
+            send "{@display-prefix}&cCleared Legendary Tier."
