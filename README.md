@@ -1,4 +1,4 @@
-# ☄️ MeteorHexMeteoritesEvent.sk
+# ☄️ HexMeteorites.sk
 
 HexMeteorites is a feature-rich Skript plugin that drops meteors filled with loot into random locations across multiple worlds. Includes tier-based rewards, timed spawns, player teleportation, and a full GUI editor for loot customization.
 
