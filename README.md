@@ -142,7 +142,7 @@ See the `LICENSE` file for details.
 
 ## 💖 Support Development
 
-[☕ Donate on Ko-fi]((https://ko-fi.com/aponder))  
+[☕ Donate on Ko-fi](https://ko-fi.com/aponder)
 [💸 Donate via PayPal](https://www.paypal.com/donate/?business=6TUCF33LPY9K2&no_recurring=0&item_name=Development+and+Coding+Features&currency_code=USD)
 
 ---
